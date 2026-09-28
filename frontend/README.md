@@ -28,4 +28,6 @@ Optional analysis columns: `timestamp,altitude,ambient_temperature,health_factor
 
 Frontend runtime contracts live in `src/api/contracts.js`; the corresponding backend request/response models and published OpenAPI schema come from `backend/api/models.py`. No page performs its own response normalization.
 
+The active command navigation includes Dashboard, Telemetry, Fleet, Digital Twin, Replay, Diagnosis, and Analytics. Dashboard and Digital Twin are local simulations; Fleet uses the V2 API; Replay, Diagnosis, and Analytics use the legacy analysis API. Health, Validation, and Experiments remain available under Engineering Tools. All model outputs are demonstrator estimates, not flight clearance or maintenance limits. See the [repository project audit](../PROJECT_AUDIT.md) for implementation status and deployment priorities.
+
 See [implementation changes and deployment instructions](../implementation/CHANGES.md) and [backend deployment patch](../implementation/backend-deployment.patch). Earlier audit/verification files are historical snapshots, not the status of the corrected code.

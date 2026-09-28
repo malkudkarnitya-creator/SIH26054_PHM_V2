@@ -67,7 +67,7 @@ def advance(state: EngineState, controls: Controls, dt: float, *, noise=True):
     target["fuel_flow"] *= fuel
     target["egt"] += (1 - fuel) * 180
     target["cht"] += (1 - fuel) * 35
-    if controls.scenario == "cooling_loss":
+    if controls.scenario in ("cooling_loss", "engine_overheating"):
         target["cht"] += 85
         target["egt"] += 90
         target["oil_temperature"] += 38
@@ -83,6 +83,10 @@ def advance(state: EngineState, controls: Controls, dt: float, *, noise=True):
         target["fuel_flow"] *= .62
         target["rpm"] *= .87
         target["egt"] += 100
+    elif controls.scenario == "sensor_drift":
+        # Instrumentation bias creates a residual signature while base physics remains nominal.
+        target["egt"] += 48
+        target["oil_pressure"] -= .55
     state.elapsed_seconds += dt
     for index, (key, spec) in enumerate(SIGNALS.items()):
         perturbation = sin(state.elapsed_seconds * .37 + index * 1.6) * spec[6] * .012 if noise else 0
@@ -116,6 +120,13 @@ def assess(state: EngineState, controls: Controls):
     hazard = (1 / max(rul, 1) + ((100 - health) / 100) ** 3 * .12) * (1 + controls.mission.environmental_severity)
     reliability = 100 * exp(-hazard * controls.mission.duration_hours) if state.wear < 1 else 0
     confidence = max(35, min(92, 64 + min(state.samples, 120) / 120 * 20 - len(violations) * 4))
+    # Transparent condition surrogate complements the deterministic physics calculation.
+    ai_health = clamp(1 - state.wear * .22 - sum(min(1, abs(item["residual"]) / max(item["normal_max"] - item["normal_min"], 1)) * .55 for item in features)) * 100
+    disagreement = abs(health - ai_health)
+    fusion_weight = .62 if state.samples >= 20 else .78
+    hybrid_health = health * fusion_weight + ai_health * (1 - fusion_weight)
+    agreement = clamp(100 - disagreement * 3.5)
+    hybrid_confidence = clamp(confidence * .72 + agreement * .28)
     faults = []
     def fault(mode, reason, action, priority, hours, keys):
         faults.append({"id": mode.lower().replace(" ", "_"), "failure_mode": mode, "reason": reason,
@@ -152,7 +163,13 @@ def assess(state: EngineState, controls: Controls):
         "health_index": health, "wear_percent": round(state.wear * 100, 3),
         "rul": {"hours": round(rul, 1), "lower_hours": round(rul * .65, 1), "upper_hours": round(rul * 1.35, 1),
                 "wear_rate_per_hour": round(rate, 7), "interval_kind": "Assumed Â±35% sensitivity band; not a calibrated confidence interval"},
-        "mission": {**controls.mission.model_dump(), "reliability_percent": round(reliability, 2), "hazard_per_hour": round(hazard, 6), "decision": decision},
+        "mission": {**controls.mission.model_dump(), "reliability_percent": round(reliability, 2), "mission_success_probability": round(reliability, 2),
+                    "engine_failure_probability": round(100 - reliability, 2), "mission_availability_percent": round(clamp((health + reliability) / 2), 2),
+                    "hazard_per_hour": round(hazard, 6), "decision": decision},
+        "hybrid": {"physics_health": round(health, 1), "ai_health": round(ai_health, 1), "fused_health": round(hybrid_health, 1),
+                   "confidence_percent": round(hybrid_confidence, 1), "agreement_percent": round(agreement, 1),
+                   "disagreement_points": round(disagreement, 1), "method": "Reduced-order digital twin + residual condition surrogate",
+                   "reason": "Models agree within the operating envelope." if disagreement < 8 else "Sensor-residual condition estimate diverges from the physics model; verify instrumentation and operating assumptions."},
         "explainability": {"confidence_percent": round(confidence, 1), "confidence_kind": "Heuristic model support, not fault probability",
                            "method": "Weighted physics residuals + envelope rules", "features": sorted(features, key=lambda f: f["penalty"], reverse=True),
                            "reasoning": [f["reason"] for f in faults], "health_penalty": round(total, 3), "wear_penalty": round(state.wear * 25, 3)},

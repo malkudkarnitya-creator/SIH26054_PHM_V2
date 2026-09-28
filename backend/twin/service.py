@@ -24,6 +24,8 @@ class TwinService:
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("CREATE TABLE IF NOT EXISTS checkpoint (id INTEGER PRIMARY KEY, payload TEXT NOT NULL)")
         self.db.execute("CREATE TABLE IF NOT EXISTS history (sequence INTEGER PRIMARY KEY, payload TEXT NOT NULL)")
+        self.db.execute("CREATE TABLE IF NOT EXISTS missions (mission_id TEXT PRIMARY KEY, started_at TEXT NOT NULL, updated_at TEXT NOT NULL, payload TEXT NOT NULL)")
+        self.db.execute("CREATE TABLE IF NOT EXISTS fault_history (sequence INTEGER, timestamp TEXT, mission_id TEXT, payload TEXT NOT NULL, PRIMARY KEY(sequence, payload))")
         self.state = EngineState()
         self.controls = Controls()
         self.sequence = 0
@@ -71,6 +73,12 @@ class TwinService:
                 row["rul_hours"] = snapshot["rul"]["hours"]
                 self.db.execute("INSERT INTO history VALUES (?, ?)", (self.sequence, json.dumps(row)))
                 self.db.execute("DELETE FROM history WHERE sequence NOT IN (SELECT sequence FROM history ORDER BY sequence DESC LIMIT 3600)")
+                mission_id = self.controls.mission.mission_id
+                for fault in snapshot["maintenance"]:
+                    if fault["priority"] != "routine":
+                        self.db.execute("INSERT OR IGNORE INTO fault_history VALUES (?, ?, ?, ?)", (self.sequence, snapshot["timestamp"], mission_id, json.dumps(fault)))
+                self.db.execute("INSERT OR IGNORE INTO missions VALUES (?, ?, ?, ?)", (mission_id, snapshot["timestamp"] or utcnow().isoformat(), utcnow().isoformat(), json.dumps(snapshot)))
+                self.db.execute("UPDATE missions SET updated_at=?, payload=? WHERE mission_id=?", (utcnow().isoformat(), json.dumps(snapshot), mission_id))
 
     def tick(self):
         with self.lock:
@@ -86,6 +94,9 @@ class TwinService:
     def configure(self, controls: Controls):
         with self.lock:
             self.controls = controls.model_copy(deep=True)
+            mission_id, now = self.controls.mission.mission_id, utcnow().isoformat()
+            with self.db:
+                self.db.execute("INSERT OR IGNORE INTO missions VALUES (?, ?, ?, ?)", (mission_id, now, now, json.dumps(self.snapshot())))
             self.last_tick = monotonic()
             self._save(record=False)
             return self.snapshot()
@@ -114,6 +125,33 @@ class TwinService:
         with self.lock:
             rows = self.db.execute("SELECT payload FROM history ORDER BY sequence DESC LIMIT ?", (limit,)).fetchall()
             return [json.loads(row[0]) for row in reversed(rows)]
+
+    def missions(self, limit=24):
+        with self.lock:
+            rows = self.db.execute("SELECT mission_id, started_at, updated_at, payload FROM missions ORDER BY updated_at DESC LIMIT ?", (limit,)).fetchall()
+            return [{"mission_id": row[0], "started_at": row[1], "updated_at": row[2], "snapshot": json.loads(row[3])} for row in rows]
+
+    def fault_history(self, limit=180):
+        with self.lock:
+            rows = self.db.execute("SELECT sequence, timestamp, mission_id, payload FROM fault_history ORDER BY sequence DESC LIMIT ?", (limit,)).fetchall()
+            return [{"sequence": row[0], "timestamp": row[1], "mission_id": row[2], "fault": json.loads(row[3])} for row in rows]
+
+    def fleet_snapshot(self):
+        """Concurrent fleet overview derived from the live lead asset and stored condition model."""
+        lead = self.snapshot()
+        offsets = [("VAYU-01", "LEAD", 0, 0.0, "ACTIVE"), ("VAYU-02", "NORTH", -4, .03, "ACTIVE"), ("VAYU-03", "EAST", -12, .12, "MONITOR"), ("VAYU-04", "SOUTH", 3, -.02, "READY"), ("VAYU-05", "WEST", -22, .22, "INSPECT")]
+        positions = {"LEAD": (50, 50), "NORTH": (50, 22), "EAST": (77, 50), "SOUTH": (50, 78), "WEST": (23, 50)}
+        assets = []
+        for engine_id, sector, health_offset, wear_offset, status in offsets:
+            health = round(clamp((lead["health_index"] + health_offset) / 100) * 100, 1)
+            reliability = round(clamp((lead["mission"]["reliability_percent"] + health_offset * .8) / 100) * 100, 1)
+            x, y = positions[sector]
+            assets.append({"engine_id": engine_id, "callsign": engine_id.replace("VAYU", "MALE"), "sector": sector, "health_index": health,
+                "reliability_percent": reliability, "rul_hours": round(max(0, lead["rul"]["hours"] * max(.15, 1 - wear_offset)), 1), "risk_percent": round(100 - reliability, 1),
+                "readiness": status, "coordinates": {"x": x, "y": y}})
+        ready = [asset for asset in assets if asset["readiness"] in ("ACTIVE", "READY")]
+        return {"generated_at": utcnow().isoformat(), "assets": assets, "summary": {"asset_count": len(assets), "fleet_health": round(sum(a["health_index"] for a in assets) / len(assets), 1),
+            "fleet_readiness_score": round(sum(a["reliability_percent"] for a in assets) / len(assets), 1), "mission_available": len(ready), "mission_availability_percent": round(len(ready) / len(assets) * 100, 1), "high_risk_assets": sum(a["risk_percent"] >= 20 for a in assets)}}
 
     def what_if(self, request: WhatIf):
         with self.lock:

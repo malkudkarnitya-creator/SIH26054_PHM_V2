@@ -19,6 +19,7 @@ class Sensors(StrictModel):
 
 
 class Mission(StrictModel):
+    mission_id: str = Field(default="MISSION-ALPHA")
     duration_hours: float = Field(default=8.0, ge=0.25, le=48)
     environmental_severity: float = Field(default=0.3, ge=0, le=1)
 
@@ -27,7 +28,7 @@ class Controls(StrictModel):
     rpm_target: float = Field(default=4800.0, ge=2000, le=5800)
     ambient_temperature: float = Field(default=25.0, ge=-20, le=55)
     fuel_flow_multiplier: float = Field(default=1.0, ge=0.7, le=1.3)
-    scenario: Literal["nominal", "cooling_loss", "oil_leak", "bearing_wear", "fuel_restriction"] = "nominal"
+    scenario: Literal["nominal", "engine_overheating", "cooling_loss", "oil_leak", "sensor_drift", "bearing_wear", "fuel_restriction"] = "nominal"
     running: bool = True
     source: Literal["simulation", "telemetry"] = "simulation"
     mission: Mission = Field(default_factory=Mission)

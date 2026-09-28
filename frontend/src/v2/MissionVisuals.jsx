@@ -1,14 +1,17 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Activity, AlertTriangle, Pause, Play, RotateCcw, Satellite, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { AdvancedAnalytics, ExplainabilityCenter, MaintenanceRecommendations, MissionTimeline } from './CommandCenterPanels'
 
 function UavModel({ health }) {
   const healthy = health >= 80
   const accent = healthy ? '#63ddbc' : '#e9b969'
-  const [spin, setSpin] = useState(0)
-  useFrame((_, delta) => setSpin((value) => value + delta * 2.2))
+  const propeller = useRef()
+  useFrame((_, delta) => {
+    if (propeller.current) propeller.current.rotation.y += delta * 2.2
+  })
   return (
     <group rotation={[0.12, 0, -0.08]}>
       <mesh castShadow>
@@ -35,7 +38,7 @@ function UavModel({ health }) {
         <boxGeometry args={[0.12, 0.65, 0.8]} />
         <meshStandardMaterial color="#415c65" metalness={0.65} roughness={0.35} />
       </mesh>
-      <group rotation={[0, spin, 0]} position={[0, 0, 1.72]}>
+      <group ref={propeller} position={[0, 0, 1.72]}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <boxGeometry args={[0.06, 2.1, 0.05]} />
           <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.5} />
@@ -66,7 +69,7 @@ export function Uav3D({ health = 100 }) {
   )
 }
 
-export function AnimatedGauge({ value, label, unit = '%', tone = 'green' }) {
+export function AnimatedGauge({ value, label, unit = '%', tone = 'green', displayValue }) {
   const safeValue = Math.max(0, Math.min(100, Number(value) || 0))
   return (
     <div className={`animated-gauge ${tone}`} role="img" aria-label={`${label}: ${safeValue}${unit}`}>
@@ -74,7 +77,7 @@ export function AnimatedGauge({ value, label, unit = '%', tone = 'green' }) {
         <circle className="gauge-track" cx="60" cy="60" r="48" />
         <motion.circle className="gauge-value" cx="60" cy="60" r="48" pathLength="100" initial={{ strokeDasharray: '0 100' }} animate={{ strokeDasharray: `${safeValue} 100` }} transition={{ duration: 1, ease: 'easeOut' }} />
       </svg>
-      <strong>{safeValue.toFixed(0)}<small>{unit}</small></strong>
+      <strong>{displayValue ?? safeValue.toFixed(0)}<small>{unit}</small></strong>
       <span>{label}</span>
     </div>
   )
@@ -118,5 +121,28 @@ export function MissionReplayPlayer({ history }) {
 }
 
 export function MissionVisuals({ data, history }) {
-  return <div className="mission-visuals" id="mission-control"><section className="v-panel uav-panel"><div className="v-panel-head"><div><span className="v-eyebrow">MISSION CONTROL / AIR VEHICLE STATE</span><h3><ShieldCheck size={16} /> Air vehicle overview</h3></div><span className="v-badge green">3D DIGITAL AIRFRAME</span></div><Uav3D health={data.health_index} /><div className="uav-gauges"><AnimatedGauge value={data.health_index} label="Health" /><AnimatedGauge value={data.mission.reliability_percent} label="Reliability" tone="blue" /><AnimatedGauge value={100 - data.wear_percent} label="Life reserve" tone="purple" /></div></section><FaultTimeline history={history} /><MissionReplayPlayer history={history} /></div>
+  const sensorGauge = (key, label, max, tone = 'green') => (
+    <AnimatedGauge value={(Number(data.sensors[key]) / max) * 100} displayValue={Number(data.sensors[key]).toFixed(key === 'rpm' ? 0 : 1)} label={label} unit={data.explainability.features.find((item) => item.key === key)?.unit || ''} tone={tone} />
+  )
+  const risk = Math.max(0, 100 - Number(data.mission.reliability_percent))
+  const activeFault = data.explainability.reasoning?.[0] || 'No active fault signature detected.'
+  const missionAction = data.mission.decision === 'WITHIN DEMO ENVELOPE' ? 'Continue mission' : data.mission.decision
+  return <div className="mission-visuals" id="mission-control">
+    <section className="v-panel uav-panel">
+      <div className="v-panel-head"><div><span className="v-eyebrow">MISSION CONTROL / AIR VEHICLE STATE</span><h3><ShieldCheck size={16} /> Air vehicle overview</h3></div><span className="v-badge green">3D DIGITAL AIRFRAME</span></div>
+      <Uav3D health={data.health_index} />
+      <div className="uav-gauges"><AnimatedGauge value={data.health_index} label="Health" /><AnimatedGauge value={data.mission.reliability_percent} label="Reliability" tone="blue" /><AnimatedGauge value={100 - data.wear_percent} label="Life reserve" tone="purple" /></div>
+      <div className="sensor-gauges"><div className="v-panel-head"><div><span className="v-eyebrow">LIVE SENSOR ARRAY</span><h3><Activity size={16} /> Propulsion telemetry</h3></div><span className="v-muted">AUTO-UPDATED</span></div><div className="sensor-gauge-grid">{sensorGauge('rpm', 'RPM', 6000)}{sensorGauge('egt', 'EGT', 900, 'amber')}{sensorGauge('vibration', 'Vibration', 10, 'purple')}{sensorGauge('fuel_flow', 'Fuel', 40, 'blue')}</div></div>
+    </section>
+    <section className="v-panel mission-status-panel">
+      <div className="v-panel-head"><div><span className="v-eyebrow">MISSION STATUS / DECISION SUPPORT</span><h3><ShieldCheck size={16} /> Mission readiness</h3></div><span className={`v-badge ${risk > 35 ? 'amber' : 'green'}`}>{risk > 35 ? 'MONITOR' : 'NOMINAL'}</span></div>
+      <div className="mission-status-grid"><div><span>MISSION STATE</span><b>{data.controls.running ? 'ACTIVE / MONITORING' : 'STANDBY / HOLD'}</b></div><div><span>RISK LEVEL</span><b>{risk.toFixed(1)}%</b></div><div><span>RECOMMENDED ACTION</span><b>{missionAction}</b></div><div><span>REMAINING CAPABILITY</span><b>{Number(data.rul.hours).toFixed(0)} hrs projected</b></div></div>
+    </section>
+    <section className="v-panel fault-center-panel">
+      <div className="v-panel-head"><div><span className="v-eyebrow">FAULT DETECTION CENTER / RESIDUAL ANALYSIS</span><h3><AlertTriangle size={16} /> Active fault assessment</h3></div><span className={`v-badge ${data.health_index < 80 ? 'amber' : 'green'}`}>{data.health_index < 80 ? 'ATTENTION' : 'CLEAR'}</span></div>
+      <div className="fault-center"><div className="fault-confidence"><AnimatedGauge value={data.explainability.confidence_percent} label="Confidence" tone="amber" /></div><div className="fault-summary"><span>ACTIVE FAULT SIGNATURE</span><strong>{activeFault}</strong><span>FAULT CONFIDENCE</span><b>{Number(data.explainability.confidence_percent).toFixed(0)}%</b><span>RESIDUAL TREND</span><div className="residual-bars">{data.explainability.features.slice(0, 4).map((item) => <i key={item.key} style={{ height: `${Math.max(8, Math.min(100, item.importance))}%` }} title={`${item.label}: ${item.importance.toFixed(1)}%`} />)}</div></div></div>
+    </section>
+    <FaultTimeline history={history} /><MissionReplayPlayer history={history} />
+    <ExplainabilityCenter data={data} /><MaintenanceRecommendations data={data} /><MissionTimeline data={data} history={history} /><AdvancedAnalytics data={data} history={history} />
+  </div>
 }

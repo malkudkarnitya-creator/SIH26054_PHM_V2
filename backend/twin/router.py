@@ -58,6 +58,27 @@ def history(request: Request, limit: int = Query(default=180, ge=1, le=3600)):
     return {"history": request.app.state.twin.history(limit)}
 
 
+@router.get("/fleet")
+def fleet(request: Request):
+    return request.app.state.twin.fleet_snapshot()
+
+
+@router.get("/missions")
+def missions(request: Request, limit: int = Query(default=24, ge=1, le=200)):
+    return {"missions": request.app.state.twin.missions(limit)}
+
+
+@router.get("/fault-history")
+def fault_history(request: Request, limit: int = Query(default=180, ge=1, le=3600)):
+    return {"fault_history": request.app.state.twin.fault_history(limit)}
+
+
+@router.get("/missions/{mission_id}/replay")
+def mission_replay(mission_id: str, request: Request):
+    # The time-indexed snapshot stream is directly consumable by existing replay controls.
+    return {"mission_id": mission_id, "history": request.app.state.twin.history(3600)}
+
+
 @router.post("/controls")
 def controls(body: Controls, request: Request):
     return request.app.state.twin.configure(body)

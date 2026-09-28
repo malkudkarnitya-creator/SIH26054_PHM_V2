@@ -12,6 +12,7 @@ export default defineConfig({
           framework: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],
           animation: ['framer-motion'],
+          three: ['three', '@react-three/fiber', '@react-three/drei'],
         },
       },
     },
