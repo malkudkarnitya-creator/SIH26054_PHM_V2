@@ -5,8 +5,8 @@ import {
 } from './contracts.js'
 export { validateAnalysis } from './contracts.js'
 
-// Same-origin API by default; Vite and the production proxy route requests to FastAPI.
-export const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '').replace(/\/$/, '')
+// Netlify has no FastAPI reverse proxy. Use Render unless a build-time override is supplied.
+export const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || 'https://sih26054-phm-v2.onrender.com').replace(/\/$/, '')
 const client = axios.create({ baseURL: API_BASE_URL, timeout: 90000 })
 const pending = new Map()
 

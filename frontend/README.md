@@ -1,6 +1,6 @@
 # Mission Control
 
-React/Vite frontend. Production defaults to https://sih26054-phm.onrender.com.
+React/Vite frontend. Production defaults to https://sih26054-phm-v2.onrender.com.
 
 ```sh
 npm ci

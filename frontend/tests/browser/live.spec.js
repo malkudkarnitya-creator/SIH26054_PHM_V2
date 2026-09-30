@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('real API: upload through replay and reset must all succeed', async ({ page }, testInfo) => {
   test.skip(process.env.PHM_LIVE !== '1' && process.env.PHM_LOCAL !== '1', 'Run test:integration or enable PHM_LIVE.')
-  const base = process.env.PHM_LOCAL === '1' ? 'http://127.0.0.1:8001' : 'https://sih26054-phm.onrender.com'
+  const base = process.env.PHM_LOCAL === '1' ? 'http://127.0.0.1:8001' : 'https://sih26054-phm-v2.onrender.com'
   const errors = [], statuses = [], requests = []
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (['error', 'warning'].includes(message.type())) errors.push(message.text()) })

@@ -1,4 +1,4 @@
-﻿const BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+﻿const BASE = (import.meta.env.VITE_API_BASE_URL || 'https://sih26054-phm-v2.onrender.com').replace(/\/$/, '')
 export async function request(path, body, signal) {
   const response = await fetch(`${BASE}/api/v2${path}`, {
     method: body === undefined ? 'GET' : 'POST',

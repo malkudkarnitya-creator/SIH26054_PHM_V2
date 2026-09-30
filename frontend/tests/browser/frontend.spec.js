@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const base = 'https://sih26054-phm.onrender.com'
+const base = 'https://sih26054-phm-v2.onrender.com'
 import { sample, samples, analysis, validation, history, experiment, makeReplay } from '../fixtures/contracts.js'
 async function mockApi(page, overrides = {}) {
   const requests = []

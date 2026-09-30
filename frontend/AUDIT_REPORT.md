@@ -1,6 +1,6 @@
 # Frontend audit and integration report
 
-Audited on 12 September 2026. API: https://sih26054-phm.onrender.com
+Audited on 12 September 2026. API: https://sih26054-phm-v2.onrender.com
 
 The React frontend builds successfully and communicates with the deployed FastAPI service. Health history, validation, CSV analysis, health/risk scores, classification, mission decisions, experiments, and estimator reset were verified in a real headless Edge browser against the production build.
 
@@ -22,7 +22,7 @@ The React frontend builds successfully and communicates with the deployed FastAP
 
 ## Dependency map
 
-All endpoint paths below resolve against `https://sih26054-phm.onrender.com`.
+All endpoint paths below resolve against `https://sih26054-phm-v2.onrender.com`.
 
 | Frontend page / action | Hook or state owner | API service | Backend endpoint | Rendering components |
 | --- | --- | --- | --- | --- |
