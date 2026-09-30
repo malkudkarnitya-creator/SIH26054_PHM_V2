@@ -67,15 +67,16 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-wrapper">
-      <section
-        style={{
-          marginBottom: '25px',
-          padding: '24px 28px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, rgba(19, 39, 48, 0.95), rgba(11, 20, 26, 0.95))',
-          border: '1px solid rgba(99, 221, 188, 0.2)',
-        }}
-      >
+      <div className="dashboard-content">
+        <section
+          style={{
+            marginBottom: '25px',
+            padding: '24px 28px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, rgba(19, 39, 48, 0.95), rgba(11, 20, 26, 0.95))',
+            border: '1px solid rgba(99, 221, 188, 0.2)',
+          }}
+        >
         <div>
           <h1
             style={{
@@ -283,6 +284,7 @@ export default function Dashboard() {
         </div>
       </section>
       <Inject />
+      </div>
       <svg
         className="uav-watermark"
         viewBox="0 0 200 200"
@@ -293,13 +295,13 @@ export default function Dashboard() {
         <path
           d="M100 20L120 60H160L130 85L145 130L100 105L55 130L70 85L40 60H80L100 20Z"
           fill="currentColor"
-          opacity="0.05"
+          opacity="0.12"
         />
-        <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="2" opacity="0.03" />
+        <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="2" opacity="0.08" />
         <path
           d="M100 40L115 70H145L125 90L135 120L100 100L65 120L75 90L55 70H85L100 40Z"
           fill="currentColor"
-          opacity="0.04"
+          opacity="0.10"
         />
       </svg>
     </div>
