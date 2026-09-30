@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Bell, Box, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Download, ExternalLink, FileText, FlaskConical, Gauge, Layers3, Menu, Pause, Play, Radio, RefreshCw, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Target, Thermometer, TriangleAlert, Wind, Wrench, X, Zap } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import EngineTwin from './EngineTwin'
+import JudgeDemo from './JudgeDemo'
 const MissionVisuals = lazy(() => import('./MissionVisuals').then((module) => ({ default: module.MissionVisuals })))
 const FleetCommandCenter = lazy(() => import('./FleetCommandCenter'))
 import { request } from './api'
@@ -70,6 +71,15 @@ export default function V2App() {
     setBusy(true); setActionError(''); setNotice('')
     try { accept(await request('/controls', { ...data.controls, ...patch })); setNotice('Engine configuration updated.'); return true }
     catch (err) { setActionError(err.message); return false }
+    finally { setBusy(false) }
+  }
+  async function startJudgeDemo(scenario) {
+    setBusy(true); setActionError(''); setNotice('')
+    try {
+      const next = await request('/demo/reset', { scenario })
+      accept(next); setPresentation(false)
+      setNotice(`${scenarios[scenario]} demo reset to a healthy baseline; deterministic evidence progression is running.`)
+    } catch (err) { setActionError(err.message) }
     finally { setBusy(false) }
   }
   async function simulate() {
@@ -166,10 +176,11 @@ export default function V2App() {
             <Metric icon={ShieldCheck} label="MISSION RELIABILITY" value={fmt(data.mission.reliability_percent)} unit="%" tone={decisionTone}><span className={`v-inline ${decisionTone}`}><span className="v-dot"/>{data.mission.decision === 'WITHIN DEMO ENVELOPE' ? 'Within demonstration envelope' : data.mission.decision.toLowerCase()}</span></Metric>
             <Metric icon={Sparkles} label="HYBRID MODEL CONFIDENCE" value={live ? fmt(data.hybrid?.confidence_percent ?? data.explainability.confidence_percent, 0) : '—'} unit={live ? '%' : ''} tone="purple" sub="Digital twin + condition surrogate"/>
           </section>
+          <JudgeDemo data={data} busy={busy} onStart={startJudgeDemo} onPause={running => control({ running })}/>
           <div className="phm-demo-grid">
             <FaultPropagation data={data}/>
-            <section className="v-panel rul-countdown"><SectionHead title="Remaining useful life" eyebrow="DYNAMIC LIFE FORECAST" icon={Clock3}><Badge tone="blue">DECLINING</Badge></SectionHead><strong>{fmt(data.rul.hours, 0)}<small> flight hours</small></strong><div><span>Previous RUL <b>{fmt(data.rul.previous_hours, 1)} h</b></span><span>Delta <b>{fmt(data.rul.delta_hours, 2)} h</b></span><span>Prediction confidence <b>{fmt(data.explainability.confidence_percent, 0)}%</b></span></div><p>Wear, thermal stress and the active fault signature determine this countdown.</p></section>
-            <section className="v-panel detection-confidence"><SectionHead title="Fault detection confidence" eyebrow="EVIDENCE ACCUMULATION" icon={Sparkles}><Badge tone="purple">{certaintyLabel(data.explainability.confidence_percent).toUpperCase()}</Badge></SectionHead><strong>{fmt(data.explainability.confidence_percent, 0)}<small>%</small></strong><div className="confidence-meter"><i style={{width: `${data.explainability.confidence_percent}%`}}/></div><p>Trend: increasing as residual evidence accumulates. Certainty: <b>{certaintyLabel(data.explainability.confidence_percent)}</b>.</p></section>
+            <section className="v-panel rul-countdown" style={{ '--rul': `${100 - data.wear_percent}%` }}><SectionHead title="Remaining useful life" eyebrow="DYNAMIC LIFE FORECAST" icon={Clock3}><Badge tone="blue">DECLINING</Badge></SectionHead><strong>{fmt(data.rul.hours, 0)}<small> flight hours</small></strong><div><span>Life reserve <b>{fmt(100 - data.wear_percent, 0)}%</b></span><span>Previous RUL <b>{fmt(data.rul.previous_hours, 1)} h</b></span><span>Delta <b>{fmt(data.rul.delta_hours, 2)} h</b></span></div><p>Critical threshold: 20% life reserve. Wear, thermal stress and the active fault signature determine this countdown.</p></section>
+            <section className="v-panel detection-confidence" style={{ '--confidence': `${data.explainability.confidence_percent}%` }}><SectionHead title="Fault detection confidence" eyebrow="EVIDENCE ACCUMULATION" icon={Sparkles}><Badge tone="purple">{certaintyLabel(data.explainability.confidence_percent).toUpperCase()}</Badge></SectionHead><strong>{fmt(data.explainability.confidence_percent, 0)}<small>%</small></strong><div className="confidence-meter"><i style={{width: `${data.explainability.confidence_percent}%`}}/></div><p>Trend: increasing as residual evidence accumulates. Certainty: <b>{certaintyLabel(data.explainability.confidence_percent)}</b>.</p></section>
             <section className="v-panel performance-signature"><SectionHead title="Active fault signature" eyebrow="EXPLAINABLE PERFORMANCE EFFECTS" icon={Gauge}/><div><span>Pressure ratio <b>{fmt(data.performance.pressure_ratio, 2)}</b></span><span>Compressor efficiency <b>{fmt(data.performance.compressor_efficiency_percent, 0)}%</b></span><span>Fuel pressure <b>{fmt(data.performance.fuel_pressure_bar, 2)} bar</b></span><span>Range remaining <b>{fmt(data.performance.range_percent, 0)}%</b></span><span>Fuel anomaly <b>+{fmt(data.performance.fuel_consumption_anomaly_percent, 0)}%</b></span><span>Sensor bias <b>{fmt(data.performance.sensor_bias_magnitude, 2)}</b></span></div></section>
           </div>
           <Suspense fallback={<div className="v-panel visual-loading">Loading fleet operational picture…</div>}><FleetCommandCenter fleet={fleet}/></Suspense>

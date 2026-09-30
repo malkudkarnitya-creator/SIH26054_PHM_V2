@@ -83,6 +83,16 @@ export function AnimatedGauge({ value, label, unit = '%', tone = 'green', displa
   )
 }
 
+export function HealthGauge({ value }) {
+  const safe = Math.max(0, Math.min(100, Number(value) || 0))
+  const angle = -120 + safe * 2.4
+  const status = safe >= 85 ? 'NOMINAL' : safe >= 70 ? 'MONITOR' : 'ACTION REQUIRED'
+  return <div className={`health-gauge ${safe >= 85 ? 'nominal' : safe >= 70 ? 'monitor' : 'critical'}`} role="img" aria-label={`Engine health ${safe.toFixed(0)} percent, ${status}`}>
+    <svg viewBox="0 0 220 135"><path className="health-arc red" d="M29 112 A92 92 0 0 1 65 42"/><path className="health-arc amber" d="M67 40 A92 92 0 0 1 123 20"/><path className="health-arc green" d="M126 20 A92 92 0 0 1 192 112"/><motion.g initial={{ rotate: -120 }} animate={{ rotate: angle }} transition={{ type: 'spring', stiffness: 55, damping: 15 }} style={{ transformOrigin: '110px 112px' }}><path className="health-needle" d="M110 112 L106 45 L114 45 Z"/><circle cx="110" cy="112" r="8" className="health-hub"/></motion.g></svg>
+    <div className="health-gauge-readout"><strong>{safe.toFixed(0)}<small>%</small></strong><span>ENGINE HEALTH</span><b>{status}</b></div>
+  </div>
+}
+
 function severityFor(row) {
   if (row.health_index < 65) return 'critical'
   if (row.health_index < 80) return 'warning'
@@ -131,7 +141,7 @@ export function MissionVisuals({ data, history }) {
     <section className="v-panel uav-panel">
       <div className="v-panel-head"><div><span className="v-eyebrow">MISSION CONTROL / AIR VEHICLE STATE</span><h3><ShieldCheck size={16} /> Air vehicle overview</h3></div><span className="v-badge green">3D DIGITAL AIRFRAME</span></div>
       <Uav3D health={data.health_index} />
-      <div className="uav-gauges"><AnimatedGauge value={data.health_index} label="Health" /><AnimatedGauge value={data.mission.reliability_percent} label="Reliability" tone="blue" /><AnimatedGauge value={100 - data.wear_percent} label="Life reserve" tone="purple" /></div>
+      <div className="uav-gauges"><HealthGauge value={data.health_index} /><AnimatedGauge value={data.mission.reliability_percent} label="Reliability" tone="blue" /><AnimatedGauge value={100 - data.wear_percent} label="Life reserve" tone="purple" /></div>
       <div className="sensor-gauges"><div className="v-panel-head"><div><span className="v-eyebrow">LIVE SENSOR ARRAY</span><h3><Activity size={16} /> Propulsion telemetry</h3></div><span className="v-muted">AUTO-UPDATED</span></div><div className="sensor-gauge-grid">{sensorGauge('rpm', 'RPM', 6000)}{sensorGauge('egt', 'EGT', 900, 'amber')}{sensorGauge('vibration', 'Vibration', 10, 'purple')}{sensorGauge('fuel_flow', 'Fuel', 40, 'blue')}</div></div>
     </section>
     <section className="v-panel mission-status-panel">
@@ -140,7 +150,7 @@ export function MissionVisuals({ data, history }) {
     </section>
     <section className="v-panel fault-center-panel">
       <div className="v-panel-head"><div><span className="v-eyebrow">FAULT DETECTION CENTER / RESIDUAL ANALYSIS</span><h3><AlertTriangle size={16} /> Active fault assessment</h3></div><span className={`v-badge ${data.health_index < 80 ? 'amber' : 'green'}`}>{data.health_index < 80 ? 'ATTENTION' : 'CLEAR'}</span></div>
-      <div className="fault-center"><div className="fault-confidence"><AnimatedGauge value={data.explainability.confidence_percent} label="Confidence" tone="amber" /></div><div className="fault-summary"><span>ACTIVE FAULT SIGNATURE</span><strong>{activeFault}</strong><span>FAULT CONFIDENCE</span><b>{Number(data.explainability.confidence_percent).toFixed(0)}%</b><span>RESIDUAL TREND</span><div className="residual-bars">{data.explainability.features.slice(0, 4).map((item) => <i key={item.key} style={{ height: `${Math.max(8, Math.min(100, item.importance))}%` }} title={`${item.label}: ${item.importance.toFixed(1)}%`} />)}</div></div></div>
+      <div className="fault-center"><div className="fault-confidence"><AnimatedGauge value={data.explainability.confidence_percent} label="Confidence" tone="amber" /></div><div className="fault-summary"><span>ACTIVE FAULT SIGNATURE</span><strong>{activeFault}</strong><span>FAULT CONFIDENCE</span><b>{Number(data.explainability.confidence_percent).toFixed(0)}%</b><span>ACTUAL / EXPECTED RESIDUALS</span><div className="residual-readouts">{data.explainability.features.slice(0, 4).map((item) => <div key={item.key} className={item.status}><span>{item.label}</span><i><b style={{ width: `${Math.min(100, Math.abs(item.residual) / Math.max(1, item.tolerance || item.normal_max - item.normal_min) * 100)}%` }}/></i><small>{item.value.toFixed(1)} / {item.expected.toFixed(1)}</small></div>)}</div></div></div>
     </section>
     <FaultTimeline history={history} /><MissionReplayPlayer history={history} />
     <ExplainabilityCenter data={data} /><MaintenanceRecommendations data={data} /><MissionTimeline data={data} history={history} /><AdvancedAnalytics data={data} history={history} />

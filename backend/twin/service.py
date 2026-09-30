@@ -103,6 +103,22 @@ class TwinService:
             self._save(record=False)
             return self.snapshot()
 
+    def reset_demo(self, scenario: str):
+        """Reset only the synthetic simulator to its known healthy baseline."""
+        with self.lock:
+            if self.controls.source != "simulation":
+                raise ValueError("Select the built-in simulation source before starting Judge Demo Mode.")
+            controls = self.controls.model_copy(deep=True)
+            controls.scenario = scenario
+            controls.running = True
+            self.state = EngineState()
+            self.controls = controls
+            self.observed_at = utcnow()
+            self.sample_source = "simulation"
+            self.last_tick = monotonic()
+            self._save()
+            return self.snapshot()
+
     def ingest(self, telemetry: Telemetry):
         with self.lock:
             if self.controls.source != "telemetry":

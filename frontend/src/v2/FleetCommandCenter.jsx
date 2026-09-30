@@ -87,6 +87,6 @@ export default function FleetCommandCenter({ fleet, lastUpdated }) {
         <p><ShieldAlert size={14}/> Fleet view is a live demonstrator operational picture. VAYU-01 is bound to the full digital twin; companion assets retain independent condition offsets for parallel mission triage.</p>
       </article>
     </div>
-    <div className="fleet-asset-table">{assets.map(item => <button key={item.engine_id} onClick={() => setSelected(item.engine_id)} className={activeId === item.engine_id ? 'selected' : ''}><span className={`fleet-state ${tone(item.health_index)}`}/><b>{item.engine_id}</b><small>{item.sector}</small><strong>{n(item.health_index)}</strong><em>{n(item.rul_hours)} h RUL</em><i>{readinessForHealth(item.health_index)}</i></button>)}</div>
+    <div className="fleet-asset-table">{assets.map(item => <button key={item.engine_id} onClick={() => setSelected(item.engine_id)} className={`${activeId === item.engine_id ? 'selected' : ''} ${tone(item.health_index)}`}><span className={`fleet-state ${tone(item.health_index)}`}/><b>{item.engine_id}</b><small>{item.sector}</small><div className="fleet-card-visual"><Plane size={20}/><strong style={{ '--health': `${item.health_index}%` }}>{n(item.health_index)}</strong></div><em>{n(item.rul_hours)} h RUL</em><i>{readinessForHealth(item.health_index)}</i></button>)}</div>
   </section>
 }

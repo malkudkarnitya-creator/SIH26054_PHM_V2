@@ -44,3 +44,8 @@ class WhatIf(StrictModel):
     temperature_variation: float = Field(default=0.0, ge=-20, le=30)
     fuel_flow_variation: float = Field(default=0.0, ge=-30, le=30)
     horizon_minutes: float = Field(default=15.0, ge=1, le=60)
+
+
+class DemoReset(StrictModel):
+    """A deterministic reset for the judge-facing simulation walkthrough."""
+    scenario: Literal["nominal", "engine_degradation", "sensor_bias", "fuel_leak", "compressor_fouling"] = "nominal"

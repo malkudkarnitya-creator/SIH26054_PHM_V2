@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 
-from .schemas import Controls, Telemetry, WhatIf
+from .schemas import Controls, DemoReset, Telemetry, WhatIf
 from .service import TwinService
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,14 @@ def mission_replay(mission_id: str, request: Request):
 @router.post("/controls")
 def controls(body: Controls, request: Request):
     return request.app.state.twin.configure(body)
+
+
+@router.post("/demo/reset")
+def demo_reset(body: DemoReset, request: Request):
+    try:
+        return request.app.state.twin.reset_demo(body.scenario)
+    except ValueError as error:
+        raise HTTPException(409, str(error)) from error
 
 
 @router.post("/telemetry")
