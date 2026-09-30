@@ -5,12 +5,14 @@ import { ResourceState } from './components'
 import CommandLayout from './layouts/CommandLayout'
 import { useResource } from './hooks/useResource'
 import Analytics from './pages/Analytics'
+import Architecture from './pages/Architecture'
 import Dashboard from './pages/Dashboard'
 import Diagnosis from './pages/Diagnosis'
 import DigitalTwin from './pages/DigitalTwin'
 import Experiments from './pages/Experiments'
 import Fleet from './pages/Fleet'
 import Health from './pages/Health'
+import JudgeDemoPage from './pages/JudgeDemoPage'
 import Replay from './pages/Replay'
 import Telemetry from './pages/Telemetry'
 import Validation from './pages/Validation'
@@ -36,6 +38,9 @@ export default function App() {
       <CommandLayout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/judge-demo" element={<JudgeDemoPage />} />
+          <Route path="/demo" element={<Navigate to="/judge-demo" replace />} />
+          <Route path="/architecture" element={<Architecture />} />
           <Route path="/telemetry" element={<Telemetry />} />
           <Route path="/fleet" element={<Fleet />} />
           <Route path="/digital-twin" element={<DigitalTwin />} />

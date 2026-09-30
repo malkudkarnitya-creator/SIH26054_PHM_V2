@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import {
   Activity,
+  Award,
   Boxes,
   ChevronRight,
   CircleDot,
   FlaskConical,
   Gauge,
+  Layers,
   LayoutDashboard,
   Menu,
   Satellite,
@@ -16,6 +18,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 
 const operations = [
   ['/', 'Dashboard', LayoutDashboard],
+  ['/judge-demo', 'Judge Demo', Award],
+  ['/architecture', 'Architecture', Layers],
   ['/telemetry', 'Telemetry', Activity],
   ['/fleet', 'Fleet', Boxes],
   ['/digital-twin', 'Digital Twin', CircleDot],
@@ -30,7 +34,13 @@ const engineering = [
   ['/experiments', 'Experiments', FlaskConical],
 ]
 
-const titles = new Map([...operations, ...engineering].map(([path, label]) => [path, label]))
+const titles = new Map([
+  ...operations,
+  ...engineering,
+  ['/judge-demo', 'Judge Demo Mode'],
+  ['/demo', 'Judge Demo Mode'],
+  ['/architecture', 'Architecture & Digital Twin'],
+].map(([path, label]) => [path, label]))
 
 function NavigationLinks({ links, close }) {
   return links.map(([path, label, Icon]) => (

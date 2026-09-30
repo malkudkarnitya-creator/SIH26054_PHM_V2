@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { Award, Layers, ArrowRight, Sparkles } from 'lucide-react'
 import { useMission } from '../hooks/useMission'
 import { HealthScore, MissionRecommendation, RemainingLife } from '../components/MissionMetrics'
 import { TelemetryChart } from '../components/Charts'
@@ -71,6 +73,105 @@ export default function Dashboard() {
           <p>Engine condition snapshot for the local mission demonstrator.</p>
         </div>
         <div className="mission-state" role="status"><i /> DEMO · {mission.mission}</div>
+      </section>
+
+      {/* SIH26054 Evaluator Quick Access Strip */}
+      <section
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px',
+          marginBottom: '20px',
+          padding: '14px 20px',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, rgba(19, 39, 48, 0.95), rgba(11, 20, 26, 0.95))',
+          border: '1px solid rgba(99, 221, 188, 0.25)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+        }}
+        aria-label="Judge evaluation quick access"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: 'rgba(99, 221, 188, 0.15)',
+              border: '1px solid rgba(99, 221, 188, 0.35)',
+              color: '#63ddbc',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <Award size={20} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  font: "700 8px 'DM Mono', monospace",
+                  letterSpacing: '1px',
+                  color: '#63ddbc',
+                  background: 'rgba(99, 221, 188, 0.1)',
+                  padding: '2px 6px',
+                  borderRadius: '3px',
+                }}
+              >
+                SIH26054 EVALUATION MODE
+              </span>
+            </div>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#f0f7f7', margin: '4px 0 2px' }}>
+              Judge Demo Walkthrough & Architecture Diagrams
+            </h3>
+            <p style={{ fontSize: '11px', color: '#88a3ad', margin: 0 }}>
+              Launch 1-click deterministic fault scenarios (Engine Degradation, Compressor Fouling, Fuel Leak, Sensor Bias) or view aerospace SVG architecture diagrams.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link
+            to="/judge-demo"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              background: '#63ddbc',
+              color: '#0a1d19',
+              fontWeight: '600',
+              fontSize: '11px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              boxShadow: '0 0 16px rgba(99, 221, 188, 0.25)',
+            }}
+          >
+            <Sparkles size={13} />
+            <span>Launch Judge Demo</span>
+            <ArrowRight size={13} />
+          </Link>
+          <Link
+            to="/architecture"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#c9d7de',
+              fontWeight: '500',
+              fontSize: '11px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+            }}
+          >
+            <Layers size={13} />
+            <span>View Architecture</span>
+          </Link>
+        </div>
       </section>
 
       <div className="metric-grid">

@@ -1,0 +1,538 @@
+/* ========================================================================= */
+/* SKYNEX AEROSPACE PHM PRESENTATION ASSETS & ARCHITECTURE STYLING           */
+/* GE Aerospace / Honeywell Forge / NASA Mission Control Design System       */
+/* ========================================================================= */
+
+.architecture-page {
+  padding-bottom: 60px;
+  max-width: 1740px;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.arch-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, rgba(16, 28, 36, 0.96), rgba(9, 16, 22, 0.97));
+  border: 1px solid rgba(99, 221, 188, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.arch-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #63ddbc, #8ab6e8, #aa9ae4, transparent);
+}
+
+.arch-header-left h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: #f0f8f8;
+  margin: 8px 0 8px;
+  line-height: 1.25;
+}
+
+.arch-header-left p {
+  max-width: 840px;
+  margin: 0;
+  color: #8da7b2;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.arch-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Master Export Button */
+.arch-export-master {
+  background: #63ddbc;
+  color: #091a16;
+  border: 1px solid #63ddbc;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(99, 221, 188, 0.25);
+  transition: all 0.22s ease;
+}
+
+.arch-export-master:hover {
+  background: #7ee7cc;
+  box-shadow: 0 0 28px rgba(99, 221, 188, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ========================================================================= */
+/* 7. HOW SKYNEX WORKS (EXECUTIVE JUDGE BRIEFING)                            */
+/* ========================================================================= */
+
+.judge-briefing-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(16, 29, 37, 0.96), rgba(10, 19, 25, 0.96));
+  border: 1px solid rgba(99, 221, 188, 0.25);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+}
+
+.judge-briefing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.judge-briefing-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 8.5px 'DM Mono', monospace;
+  letter-spacing: 1.5px;
+  color: #63ddbc;
+  margin-bottom: 4px;
+}
+
+.judge-briefing-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #f0f7f7;
+  margin: 0 0 4px;
+}
+
+.judge-briefing-header p {
+  font-size: 11.5px;
+  color: #8da7b2;
+  margin: 0;
+  max-width: 760px;
+}
+
+.judge-briefing-badge {
+  font: 700 8px 'DM Mono', monospace;
+  letter-spacing: 1.2px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(170, 154, 228, 0.12);
+  border: 1px solid rgba(170, 154, 228, 0.3);
+  color: #c5b8f2;
+}
+
+/* 7-Step Walkthrough Timeline */
+.judge-steps-timeline {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.judge-step-node {
+  background: rgba(14, 25, 32, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 125px;
+}
+
+.judge-step-node:hover {
+  border-color: rgba(99, 221, 188, 0.4);
+  background: rgba(19, 36, 45, 0.95);
+  transform: translateY(-2px);
+}
+
+.judge-step-node.active {
+  border-color: #63ddbc;
+  background: linear-gradient(145deg, rgba(21, 45, 52, 0.96), rgba(12, 26, 33, 0.96));
+  box-shadow: 0 0 0 1px rgba(99, 221, 188, 0.4), 0 10px 24px rgba(99, 221, 188, 0.12);
+}
+
+.judge-step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.judge-step-num {
+  font: 700 9px 'DM Mono', monospace;
+  color: #63ddbc;
+  background: rgba(99, 221, 188, 0.12);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.judge-step-node.active .judge-step-num {
+  background: #63ddbc;
+  color: #0b1e19;
+}
+
+.judge-step-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #eaf3f3;
+  margin: 0 0 4px;
+}
+
+.judge-step-summary {
+  font-size: 9px;
+  line-height: 1.45;
+  color: #8da4ad;
+  margin: 0 0 8px;
+  flex: 1 1 auto;
+}
+
+.judge-step-badge {
+  font: 700 7px 'DM Mono', monospace;
+  letter-spacing: 0.8px;
+  color: #8ab6e8;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 6px;
+  margin-top: auto;
+}
+
+/* Expanded Detail Box for Selected Stage */
+.judge-expanded-box {
+  background: linear-gradient(145deg, rgba(20, 39, 48, 0.98), rgba(13, 25, 32, 0.98));
+  border: 1px solid rgba(99, 221, 188, 0.35);
+  border-radius: 9px;
+  padding: 16px 22px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.judge-expanded-col h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0f7f7;
+  margin: 0 0 6px;
+}
+
+.judge-expanded-col p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #9cb5bd;
+  margin: 0 0 10px;
+}
+
+.judge-formula-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  padding: 6px 12px;
+  font: 9.5px 'DM Mono', monospace;
+  color: #aa9ae4;
+}
+
+.judge-value-prop {
+  background: rgba(99, 221, 188, 0.08);
+  border-left: 3px solid #63ddbc;
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+}
+
+.judge-value-prop strong {
+  display: block;
+  font: 700 8.5px 'DM Mono', monospace;
+  letter-spacing: 1px;
+  color: #63ddbc;
+  margin-bottom: 4px;
+}
+
+.judge-value-prop span {
+  font-size: 11px;
+  color: #d8eee9;
+  line-height: 1.5;
+}
+
+/* ========================================================================= */
+/* DIAGRAM TABS & CONTROLS                                                   */
+/* ========================================================================= */
+
+.arch-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.arch-tab-btn {
+  background: rgba(16, 28, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 10px 16px;
+  color: #8da4ad;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.arch-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(99, 221, 188, 0.4);
+  color: #dbe9ea;
+}
+
+.arch-tab-btn.active {
+  background: linear-gradient(135deg, rgba(21, 45, 52, 0.95), rgba(13, 27, 34, 0.96));
+  border-color: #63ddbc;
+  color: #8ee7d0;
+  box-shadow: 0 0 16px rgba(99, 221, 188, 0.14);
+}
+
+.arch-tab-badge {
+  font: 700 8px 'DM Mono', monospace;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+}
+
+/* ========================================================================= */
+/* DIAGRAM CARDS & CONTAINERS                                                */
+/* ========================================================================= */
+
+.arch-diagrams-grid {
+  display: grid;
+  gap: 32px;
+}
+
+.arch-diagram-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(16, 28, 36, 0.96), rgba(9, 17, 23, 0.97));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.25s ease;
+}
+
+.arch-diagram-card:hover {
+  border-color: rgba(99, 221, 188, 0.35);
+}
+
+.arch-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 26px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.arch-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.arch-diagram-num {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(99, 221, 188, 0.12);
+  border: 1px solid rgba(99, 221, 188, 0.3);
+  color: #63ddbc;
+  display: grid;
+  place-items: center;
+  font: 700 12px 'DM Mono', monospace;
+}
+
+.arch-card-header-left h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #edf8f6;
+  margin: 0 0 2px;
+}
+
+.arch-card-header-left span {
+  font-size: 11px;
+  color: #7997a1;
+}
+
+.arch-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arch-card-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 7px 13px;
+  color: #8da4ad;
+  font-size: 10.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.arch-card-btn:hover {
+  background: rgba(99, 221, 188, 0.12);
+  border-color: rgba(99, 221, 188, 0.35);
+  color: #63ddbc;
+}
+
+/* SVG Container */
+.arch-card-svg-container {
+  padding: 28px 24px;
+  background: radial-gradient(circle at center, rgba(19, 39, 48, 0.45) 0%, rgba(7, 14, 19, 0.9) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  min-height: 480px;
+}
+
+.arch-card-svg-container svg {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.45));
+}
+
+.arch-card-footer {
+  padding: 14px 26px;
+  background: rgba(0, 0, 0, 0.28);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #7995a0;
+}
+
+.arch-card-footer b {
+  color: #b0ced4;
+}
+
+/* Toast Notification */
+.arch-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #112923;
+  border: 1px solid #63ddbc;
+  color: #a2f2dc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+  animation: toastFadeIn 0.25s ease-out;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================================================= */
+/* RESPONSIVE DESIGN (Mobile, Tablet, 4K)                                    */
+/* ========================================================================= */
+
+@media (max-width: 1200px) {
+  .judge-steps-timeline {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .judge-expanded-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .arch-header {
+    flex-direction: column;
+  }
+  .arch-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .arch-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .judge-steps-timeline {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .judge-steps-timeline {
+    grid-template-columns: 1fr;
+  }
+  .arch-header-left h1 {
+    font-size: 22px;
+  }
+  .arch-card-svg-container {
+    padding: 16px 8px;
+  }
+}
+
+/* 4K Presentation Enhancements */
+@media (min-width: 2560px) {
+  .architecture-page {
+    max-width: 2200px;
+  }
+  .arch-header-left h1 {
+    font-size: 34px;
+  }
+  .arch-card-svg-container svg {
+    max-width: 90%;
+  }
+}
