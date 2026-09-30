@@ -67,6 +67,40 @@ export default function Dashboard() {
 
   return (
     <>
+      <section
+        style={{
+          marginBottom: '25px',
+          padding: '24px 28px',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, rgba(19, 39, 48, 0.95), rgba(11, 20, 26, 0.95))',
+          border: '1px solid rgba(99, 221, 188, 0.2)',
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              letterSpacing: '0.05em',
+              color: '#f0f7f7',
+              margin: '0 0 8px 0',
+            }}
+          >
+            SKYNEX PHM
+          </h1>
+          <p
+            style={{
+              fontSize: '13px',
+              color: '#88a3ad',
+              margin: 0,
+              letterSpacing: '0.02em',
+            }}
+          >
+            AI-Powered Predictive Health Monitoring for UAV Fleets
+          </p>
+        </div>
+      </section>
+
       <section className="page-title">
         <div>
           <span className="eyebrow">UAV-01 · PROPULSION SYSTEM · SIMULATION</span>
