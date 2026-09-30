@@ -28,7 +28,7 @@ class Controls(StrictModel):
     rpm_target: float = Field(default=4800.0, ge=2000, le=5800)
     ambient_temperature: float = Field(default=25.0, ge=-20, le=55)
     fuel_flow_multiplier: float = Field(default=1.0, ge=0.7, le=1.3)
-    scenario: Literal["nominal", "engine_overheating", "cooling_loss", "oil_leak", "sensor_drift", "bearing_wear", "fuel_restriction"] = "nominal"
+    scenario: Literal["nominal", "engine_degradation", "sensor_bias", "fuel_leak", "compressor_fouling", "engine_overheating", "cooling_loss", "oil_leak", "sensor_drift", "bearing_wear", "fuel_restriction"] = "nominal"
     running: bool = True
     source: Literal["simulation", "telemetry"] = "simulation"
     mission: Mission = Field(default_factory=Mission)

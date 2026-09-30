@@ -60,7 +60,7 @@ class TwinService:
     def _save(self, record=True):
         self.sequence += 1
         payload = {"state": {"sensors": self.state.sensors, "wear": self.state.wear,
-                             "elapsed_seconds": self.state.elapsed_seconds, "samples": self.state.samples},
+                             "elapsed_seconds": self.state.elapsed_seconds, "samples": self.state.samples, "fault_elapsed_seconds": self.state.fault_elapsed_seconds},
                    "controls": self.controls.model_dump(), "sequence": self.sequence,
                    "observed_at": self.observed_at.isoformat() if self.observed_at else None,
                    "sample_source": self.sample_source}
@@ -93,6 +93,8 @@ class TwinService:
 
     def configure(self, controls: Controls):
         with self.lock:
+            if controls.scenario != self.controls.scenario:
+                self.state.fault_elapsed_seconds = 0.0
             self.controls = controls.model_copy(deep=True)
             mission_id, now = self.controls.mission.mission_id, utcnow().isoformat()
             with self.db:

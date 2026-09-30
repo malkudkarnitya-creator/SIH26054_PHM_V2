@@ -18,15 +18,13 @@ const navigation = [
 ]
 const sensorOrder = ['rpm', 'egt', 'cht', 'oil_temperature', 'oil_pressure', 'fuel_flow', 'vibration']
 const sensorNames = { rpm: 'Engine speed', egt: 'Exhaust gas', cht: 'Cylinder head', oil_temperature: 'Oil temperature', oil_pressure: 'Oil pressure', fuel_flow: 'Fuel flow', vibration: 'Vibration' }
-const scenarios = { nominal: 'Healthy mission', engine_overheating: 'Engine overheating', cooling_loss: 'Cooling failure', sensor_drift: 'Sensor drift', oil_leak: 'Oil pressure loss', bearing_wear: 'Engine degradation', fuel_restriction: 'Fuel starvation' }
+const scenarios = { nominal: 'Healthy mission', engine_degradation: 'Engine degradation', sensor_bias: 'Sensor bias', fuel_leak: 'Fuel leak', compressor_fouling: 'Compressor fouling', engine_overheating: 'Engine overheating', cooling_loss: 'Cooling failure', sensor_drift: 'Sensor drift', oil_leak: 'Oil pressure loss', bearing_wear: 'Bearing wear', fuel_restriction: 'Fuel starvation' }
 const demoScenarios = [
   ['nominal', 'Healthy flight'],
-  ['engine_overheating', 'Engine overheating'],
-  ['cooling_loss', 'Cooling issue'],
-  ['sensor_drift', 'Sensor drift assessment'],
-  ['oil_leak', 'Lubrication fault'],
-  ['bearing_wear', 'Engine degradation'],
-  ['fuel_restriction', 'Return-to-base scenario'],
+  ['engine_degradation', 'Engine degradation sequence'],
+  ['sensor_bias', 'Sensor bias sequence'],
+  ['fuel_leak', 'Fuel leak sequence'],
+  ['compressor_fouling', 'Compressor fouling sequence'],
 ]
 const tooltipStyle = { background: '#14232d', border: '1px solid #354a55', borderRadius: 8, fontSize: 12, color: '#e6f1f3' }
 const fmt = (n, digits = 1) => Number(n).toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits })
@@ -42,6 +40,12 @@ function Metric({ icon: Icon, label, value, unit, sub, children, tone = 'green' 
 }
 function Slider({ label, value, onChange, min, max, step = 1, unit, signed = false }) {
   return <label className="v-slider"><span>{label}<b>{signed && value > 0 ? '+' : ''}{value}{unit}</b></span><input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))}/><span className="v-range-label"><small>{min}{unit}</small><small>{max}{unit}</small></span></label>
+}
+function certaintyLabel(value) { return value >= 95 ? 'Very high' : value >= 85 ? 'High' : value >= 70 ? 'Medium' : 'Low' }
+function FaultPropagation({ data }) {
+  const progress = data.fault_progress; const isFault = progress.scenario !== 'nominal'
+  const events = [['00:00', 'Fault injected', isFault], ['00:10', 'Sensor deviation detected', progress.detected], ['00:18', 'Anomaly detected', progress.anomaly_detected], ['00:25', 'Health index updated', progress.anomaly_detected], ['00:35', 'RUL recalculated', progress.root_cause_identified], ['00:45', 'Maintenance recommendation', progress.maintenance_ready]]
+  return <section className="v-panel fault-propagation" aria-label="Fault propagation timeline"><SectionHead title="Fault propagation timeline" eyebrow="CAUSE → EFFECT → ACTION" icon={Activity}><Badge tone={isFault ? 'amber' : 'green'}>{isFault ? `${fmt(progress.severity_percent, 0)}% EVIDENCE` : 'STANDBY'}</Badge></SectionHead><div className="propagation-track">{events.map(([time, label, active], index) => <div className={`propagation-event ${active ? 'active' : ''}`} key={label}><i>{index + 1}</i><span>{time}</span><b>{label}</b></div>)}</div><p className="v-model-note">{isFault ? `${scenarios[progress.scenario]} has progressed for ${fmt(progress.elapsed_seconds, 0)} s. Each stage is enabled only by accumulated model evidence.` : 'Inject a fault to show the complete detection, diagnosis, RUL and maintenance sequence.'}</p></section>
 }
 
 export default function V2App() {
@@ -162,6 +166,12 @@ export default function V2App() {
             <Metric icon={ShieldCheck} label="MISSION RELIABILITY" value={fmt(data.mission.reliability_percent)} unit="%" tone={decisionTone}><span className={`v-inline ${decisionTone}`}><span className="v-dot"/>{data.mission.decision === 'WITHIN DEMO ENVELOPE' ? 'Within demonstration envelope' : data.mission.decision.toLowerCase()}</span></Metric>
             <Metric icon={Sparkles} label="HYBRID MODEL CONFIDENCE" value={live ? fmt(data.hybrid?.confidence_percent ?? data.explainability.confidence_percent, 0) : '—'} unit={live ? '%' : ''} tone="purple" sub="Digital twin + condition surrogate"/>
           </section>
+          <div className="phm-demo-grid">
+            <FaultPropagation data={data}/>
+            <section className="v-panel rul-countdown"><SectionHead title="Remaining useful life" eyebrow="DYNAMIC LIFE FORECAST" icon={Clock3}><Badge tone="blue">DECLINING</Badge></SectionHead><strong>{fmt(data.rul.hours, 0)}<small> flight hours</small></strong><div><span>Previous RUL <b>{fmt(data.rul.previous_hours, 1)} h</b></span><span>Delta <b>{fmt(data.rul.delta_hours, 2)} h</b></span><span>Prediction confidence <b>{fmt(data.explainability.confidence_percent, 0)}%</b></span></div><p>Wear, thermal stress and the active fault signature determine this countdown.</p></section>
+            <section className="v-panel detection-confidence"><SectionHead title="Fault detection confidence" eyebrow="EVIDENCE ACCUMULATION" icon={Sparkles}><Badge tone="purple">{certaintyLabel(data.explainability.confidence_percent).toUpperCase()}</Badge></SectionHead><strong>{fmt(data.explainability.confidence_percent, 0)}<small>%</small></strong><div className="confidence-meter"><i style={{width: `${data.explainability.confidence_percent}%`}}/></div><p>Trend: increasing as residual evidence accumulates. Certainty: <b>{certaintyLabel(data.explainability.confidence_percent)}</b>.</p></section>
+            <section className="v-panel performance-signature"><SectionHead title="Active fault signature" eyebrow="EXPLAINABLE PERFORMANCE EFFECTS" icon={Gauge}/><div><span>Pressure ratio <b>{fmt(data.performance.pressure_ratio, 2)}</b></span><span>Compressor efficiency <b>{fmt(data.performance.compressor_efficiency_percent, 0)}%</b></span><span>Fuel pressure <b>{fmt(data.performance.fuel_pressure_bar, 2)} bar</b></span><span>Range remaining <b>{fmt(data.performance.range_percent, 0)}%</b></span><span>Fuel anomaly <b>+{fmt(data.performance.fuel_consumption_anomaly_percent, 0)}%</b></span><span>Sensor bias <b>{fmt(data.performance.sensor_bias_magnitude, 2)}</b></span></div></section>
+          </div>
           <Suspense fallback={<div className="v-panel visual-loading">Loading fleet operational picture…</div>}><FleetCommandCenter fleet={fleet}/></Suspense>
           <Suspense fallback={<div className="v-panel visual-loading">Loading mission visual systems…</div>}><MissionVisuals data={data} history={history} /></Suspense>
           <div className="v-primary-grid">

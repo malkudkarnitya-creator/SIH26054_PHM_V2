@@ -4,11 +4,11 @@ No learned model or certified airworthiness prediction is implied. The pure mode
 is shared by the live service and counterfactual forecasts to prevent drift.
 """
 from dataclasses import dataclass, field
-from math import exp, sin
+from math import exp
 
 from .schemas import Controls
 
-MODEL_VERSION = "reduced-order-2.0.0"
+MODEL_VERSION = "reduced-order-2.1.0"
 # name, unit, nominal envelope, absolute display range, residual tolerance, weight, time constant
 SIGNALS = {
     "rpm": ("Engine speed", "rpm", 2000, 5500, 0, 6500, 350, .10, 2),
@@ -46,6 +46,9 @@ class EngineState:
     wear: float = .18
     elapsed_seconds: float = 0.0
     samples: int = 0
+    # Fault time is separate from flight time so a new injection always begins
+    # at a physically interpretable, zero-severity state.
+    fault_elapsed_seconds: float = 0.0
 
 
 def damage_rate(sensors, controls):
@@ -67,7 +70,30 @@ def advance(state: EngineState, controls: Controls, dt: float, *, noise=True):
     target["fuel_flow"] *= fuel
     target["egt"] += (1 - fuel) * 180
     target["cht"] += (1 - fuel) * 35
-    if controls.scenario in ("cooling_loss", "engine_overheating"):
+    # Fault signatures are deterministic, monotonic ramps.  The simulation uses
+    # an intentionally accelerated demonstration clock: 45 seconds represents
+    # the early-detection window, while sensor thermal time constants still make
+    # the displayed response smooth.
+    fault = controls.scenario
+    severity = 1 - exp(-state.fault_elapsed_seconds / 45) if fault != "nominal" else 0
+    if fault == "engine_degradation":
+        target["vibration"] += 7.0 * severity
+        target["fuel_flow"] *= 1 + .18 * severity
+        target["egt"] += 72 * severity
+        target["oil_temperature"] += 18 * severity
+    elif fault == "sensor_bias":
+        # The physical plant remains nominal; only the indicated channels drift.
+        target["egt"] += 62 * severity
+        target["oil_pressure"] -= .75 * severity
+    elif fault == "fuel_leak":
+        target["fuel_flow"] *= 1 - .38 * severity
+        target["oil_pressure"] -= .55 * severity
+        target["egt"] += 45 * severity
+    elif fault == "compressor_fouling":
+        target["fuel_flow"] *= 1 + .24 * severity
+        target["egt"] += 55 * severity
+        target["vibration"] += .9 * severity
+    elif fault in ("cooling_loss", "engine_overheating"):
         target["cht"] += 85
         target["egt"] += 90
         target["oil_temperature"] += 38
@@ -88,11 +114,14 @@ def advance(state: EngineState, controls: Controls, dt: float, *, noise=True):
         target["egt"] += 48
         target["oil_pressure"] -= .55
     state.elapsed_seconds += dt
-    for index, (key, spec) in enumerate(SIGNALS.items()):
-        perturbation = sin(state.elapsed_seconds * .37 + index * 1.6) * spec[6] * .012 if noise else 0
-        state.sensors[key] += (target[key] + perturbation - state.sensors[key]) * (1 - exp(-dt / spec[8]))
+    for key, spec in SIGNALS.items():
+        # No random or pseudo-random telemetry is introduced: every displayed
+        # change is the response to an operating point or fault signature.
+        state.sensors[key] += (target[key] - state.sensors[key]) * (1 - exp(-dt / spec[8]))
     state.wear = clamp(state.wear + damage_rate(state.sensors, controls) * dt / 3600)
     state.samples += 1
+    if fault != "nominal":
+        state.fault_elapsed_seconds += dt
 
 
 def assess(state: EngineState, controls: Controls):
@@ -113,13 +142,19 @@ def assess(state: EngineState, controls: Controls):
                          "penalty": round(penalty, 3), "status": status,
                          "normal_min": low, "normal_max": high, "min": minimum, "max": maximum})
     total = sum(item["penalty"] for item in features)
-    health = round(clamp(1 - state.wear * .25 - total / 100) * 100, 1)
+    fault_severity = 1 - exp(-state.fault_elapsed_seconds / 45) if controls.scenario != "nominal" else 0
+    scenario_health_penalty = {"engine_degradation": 18, "compressor_fouling": 8, "fuel_leak": 5}.get(controls.scenario, 0) * fault_severity
+    health = round(clamp(1 - state.wear * .25 - (total + scenario_health_penalty) / 100) * 100, 1)
     rate = damage_rate(state.sensors, controls)
     rul = max(0, (1 - state.wear) / rate)
     # Exponential survival with an explicit stress/condition-dependent hazard.
     hazard = (1 / max(rul, 1) + ((100 - health) / 100) ** 3 * .12) * (1 + controls.mission.environmental_severity)
     reliability = 100 * exp(-hazard * controls.mission.duration_hours) if state.wear < 1 else 0
-    confidence = max(35, min(92, 64 + min(state.samples, 120) / 120 * 20 - len(violations) * 4))
+    # Detection certainty begins cautiously at injection and rises as the
+    # deterministic signature accumulates; nominal confidence remains support,
+    # not a claim of fault probability.
+    evidence = fault_severity * 34 + min(state.fault_elapsed_seconds, 90) / 90 * 12
+    confidence = max(35, min(99, 58 + min(state.samples, 60) / 60 * 14 + evidence - (2 if controls.scenario == "sensor_bias" and fault_severity < .25 else 0)))
     # Transparent condition surrogate complements the deterministic physics calculation.
     ai_health = clamp(1 - state.wear * .22 - sum(min(1, abs(item["residual"]) / max(item["normal_max"] - item["normal_min"], 1)) * .55 for item in features)) * 100
     disagreement = abs(health - ai_health)
@@ -132,7 +167,19 @@ def assess(state: EngineState, controls: Controls):
         faults.append({"id": mode.lower().replace(" ", "_"), "failure_mode": mode, "reason": reason,
                        "recommended_action": action, "priority": priority, "estimated_hours": hours,
                        "features": keys})
-    if state.sensors["oil_pressure"] < 2.5:
+    if controls.scenario == "engine_degradation" and fault_severity > .18:
+        fault("Engine degradation", "Progressive vibration, fuel-burn and EGT growth indicate rotating-assembly efficiency loss.",
+              "Inspect bearings, mounts and combustion condition; schedule a borescope and oil-debris check.", "high", 6.0, ["vibration", "fuel_flow", "egt"])
+    elif controls.scenario == "sensor_bias" and fault_severity > .12:
+        fault("Sensor bias", "Measured EGT and oil-pressure residuals are increasing while the physical operating point remains stable.",
+              "Cross-check instrumentation against an independent reference and recalibrate the affected channels.", "high", 1.0, ["egt", "oil_pressure"])
+    elif controls.scenario == "fuel_leak" and fault_severity > .12:
+        fault("Fuel leak", "Fuel delivery flow and pressure are declining while the calculated consumption anomaly grows.",
+              "Inspect fuel lines, tank connections and seals; isolate the leak before the next mission.", "critical", 2.0, ["fuel_flow", "oil_pressure", "egt"])
+    elif controls.scenario == "compressor_fouling" and fault_severity > .12:
+        fault("Compressor fouling", "Pressure-ratio proxy and compressor efficiency are falling as fuel burn rises.",
+              "Inspect and clean the compressor flow path; verify performance after maintenance.", "high", 4.0, ["fuel_flow", "egt", "vibration"])
+    elif state.sensors["oil_pressure"] < 2.5:
         fault("Lubrication pressure loss", "Oil pressure is below the 2.5 bar demonstration envelope.",
               "Inspect oil lines, seals, filter and pump; verify pressure with an independent gauge.", "critical", 3.0, ["oil_pressure", "oil_temperature"])
     if state.sensors["cht"] > 220 or state.sensors["oil_temperature"] > 120:
@@ -159,10 +206,20 @@ def assess(state: EngineState, controls: Controls):
     for item in features:
         item["importance"] = round(item["penalty"] / total * 100, 1) if total else 0
     decision = "HOLD / INSPECT" if any(f["priority"] == "critical" for f in faults) or reliability < 80 or health < 55 else "REVIEW REQUIRED" if reliability < 95 or any(f["priority"] == "high" for f in faults) else "WITHIN DEMO ENVELOPE"
+    pressure_ratio = 8.6 - (1.75 * fault_severity if controls.scenario == "compressor_fouling" else 0)
+    compressor_efficiency = 86 - (18 * fault_severity if controls.scenario == "compressor_fouling" else 0)
+    fuel_pressure = max(0, 4.8 - (2.1 * fault_severity if controls.scenario == "fuel_leak" else 0))
+    fuel_anomaly = (38 * fault_severity if controls.scenario == "fuel_leak" else 18 * fault_severity if controls.scenario in ("engine_degradation", "compressor_fouling") else 0)
     return {
         "health_index": health, "wear_percent": round(state.wear * 100, 3),
-        "rul": {"hours": round(rul, 1), "lower_hours": round(rul * .65, 1), "upper_hours": round(rul * 1.35, 1),
+        "rul": {"hours": round(rul, 1), "previous_hours": round(max(0, rul + rate / 60), 1), "delta_hours": round(-rate / 60, 2), "rate_hours_per_minute": round(-rate / 60, 3), "lower_hours": round(rul * .65, 1), "upper_hours": round(rul * 1.35, 1),
                 "wear_rate_per_hour": round(rate, 7), "interval_kind": "Assumed Â±35% sensitivity band; not a calibrated confidence interval"},
+        "fault_progress": {"scenario": controls.scenario, "elapsed_seconds": round(state.fault_elapsed_seconds, 1), "severity_percent": round(fault_severity * 100, 1),
+                           "detected": fault_severity >= .12, "anomaly_detected": fault_severity >= .30, "root_cause_identified": fault_severity >= .48,
+                           "maintenance_ready": fault_severity >= .65},
+        "performance": {"pressure_ratio": round(pressure_ratio, 2), "compressor_efficiency_percent": round(compressor_efficiency, 1),
+                        "fuel_pressure_bar": round(fuel_pressure, 2), "range_percent": round(100 - fuel_anomaly * .9, 1), "fuel_consumption_anomaly_percent": round(fuel_anomaly, 1),
+                        "sensor_bias_magnitude": round(max(abs(next(item["residual"] for item in features if item["key"] == "egt")), abs(next(item["residual"] for item in features if item["key"] == "oil_pressure"))), 2) if controls.scenario == "sensor_bias" else 0},
         "mission": {**controls.mission.model_dump(), "reliability_percent": round(reliability, 2), "mission_success_probability": round(reliability, 2),
                     "engine_failure_probability": round(100 - reliability, 2), "mission_availability_percent": round(clamp((health + reliability) / 2), 2),
                     "hazard_per_hour": round(hazard, 6), "decision": decision},
