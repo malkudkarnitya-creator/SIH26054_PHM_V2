@@ -3,6 +3,7 @@ import { Award, Layers, ArrowRight, Sparkles } from 'lucide-react'
 import { useMission } from '../hooks/useMission'
 import { HealthScore, MissionRecommendation, RemainingLife } from '../components/MissionMetrics'
 import { TelemetryChart } from '../components/Charts'
+import MissionEnvironment from '../components/MissionEnvironment'
 
 function MetricCard({ label, value, unit, detail, tone = '' }) {
   return (
@@ -181,6 +182,8 @@ export default function Dashboard() {
         <MetricCard label="MISSION STATUS" value={mission.mission} detail="Simulated mission state" />
         <MetricCard label="MISSION RECOMMENDATION" value={mission.recommendation} detail="Threshold-based action" tone={mission.health < 60 ? 'red' : mission.health <= 85 ? 'amber' : 'green'} />
       </div>
+
+      <MissionEnvironment />
 
       <div className="overview-grid">
         <Recommendation />
