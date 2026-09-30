@@ -24,9 +24,11 @@ from uav_health.residual_generator import calculate_residuals
 
 
 from backend.twin.router import router as twin_router, lifespan
+from .live_telemetry import router as live_telemetry_router
 
 api = FastAPI(title="SIH26054 UAV PHM API", version="2.0.0", lifespan=lifespan)
 api.include_router(twin_router)
+api.include_router(live_telemetry_router)
 
 
 @api.exception_handler(RequestValidationError)
@@ -215,4 +217,3 @@ app = CORSMiddleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
-

@@ -145,3 +145,28 @@ class ExperimentResponse(Contract):
 
 class ResetResponse(Contract):
     status: str
+
+
+LiveFaultClassification = Literal["HEALTHY", "COOLING_ISSUE", "ENGINE_DEGRADATION"]
+MissionRecommendation = Literal["CONTINUE MISSION", "REDUCE POWER", "RETURN TO BASE"]
+
+
+class LiveTelemetryValues(Contract):
+    """Validated sensor values and their operating envelopes."""
+
+    rpm: float = Field(ge=1800, le=2800)
+    egt: float = Field(ge=500, le=850)
+    cht: float = Field(ge=120, le=250)
+    fuel_flow: float = Field(ge=5, le=40)
+    vibration: float = Field(ge=0.5, le=6.0)
+    oil_temperature: float = Field(ge=60, le=120)
+
+
+class LiveTelemetry(Contract):
+    """Validated response contract for a live engine telemetry sample."""
+
+    telemetry: LiveTelemetryValues
+    fault_classification: LiveFaultClassification
+    health_score: Score
+    mission_recommendation: MissionRecommendation
+    timestamp: AwareDatetime

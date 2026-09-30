@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { MissionProvider } from './hooks/useMission'
-import { getDemoFlight, loadMission } from './api/phmApi'
+import { MissionProvider, useMission } from './hooks/useMission'
+import { loadMission } from './api/phmApi'
 import { ResourceState } from './components'
 import CommandLayout from './layouts/CommandLayout'
 import { useResource } from './hooks/useResource'
@@ -16,9 +16,7 @@ import Telemetry from './pages/Telemetry'
 import Validation from './pages/Validation'
 
 function DiagnosisRoute() {
-  const { data, error, retry } = useResource(loadMission)
-  if (!data) return <ResourceState error={error} retry={retry} label="LOADING DIAGNOSTIC ANALYSIS" />
-  return <Diagnosis analysis={data.analysis} />
+  return <Diagnosis />
 }
 
 function HealthRoute() {
@@ -28,9 +26,8 @@ function HealthRoute() {
 }
 
 function ReplayRoute() {
-  const { data, error, retry } = useResource(getDemoFlight)
-  if (!data) return <ResourceState error={error} retry={retry} label="LOADING DEMO FLIGHT DATA" />
-  return <Replay telemetry={data.telemetry} />
+  const { history } = useMission()
+  return <Replay telemetry={history} />
 }
 
 export default function App() {

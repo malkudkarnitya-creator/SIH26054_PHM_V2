@@ -1,5 +1,6 @@
 import { useMission } from '../hooks/useMission'
 import { HealthScore, MissionRecommendation, RemainingLife } from '../components/MissionMetrics'
+import { TelemetryChart } from '../components/Charts'
 
 function MetricCard({ label, value, unit, detail, tone = '' }) {
   return (
@@ -16,6 +17,7 @@ export function Inject() {
   const scenarios = [
     ['cooling', 'Inject cooling fault'],
     ['sensor', 'Inject sensor fault'],
+    ['bearing', 'Inject bearing wear'],
     ['degradation', 'Inject engine degradation'],
   ]
 
@@ -50,6 +52,15 @@ export function Recommendation() {
 
 export default function Dashboard() {
   const mission = useMission()
+  const latest = mission.latest
+  const readings = [
+    ['RPM', 'rpm', 'RPM', 0],
+    ['EGT', 'egt', '°C', 1],
+    ['CHT', 'cht', '°C', 1],
+    ['FUEL FLOW', 'fuel_flow', 'L/hr', 2],
+    ['VIBRATION', 'vibration', 'mm/s', 2],
+    ['OIL TEMPERATURE', 'oil_temperature', '°C', 1],
+  ]
 
   return (
     <>
@@ -63,11 +74,11 @@ export default function Dashboard() {
       </section>
 
       <div className="metric-grid">
-        <MetricCard label="HEALTH SCORE" value={mission.health} unit="/100" detail="Scenario health index" tone={mission.health < 70 ? 'red' : 'green'} />
-        <MetricCard label="REMAINING USEFUL LIFE" value={mission.rul} unit="hrs" detail="Illustrative scenario estimate" />
-        <MetricCard label="CURRENT FAULT" value={mission.fault} detail="Local scenario classification" tone={mission.scenario === 'normal' ? 'green' : 'amber'} />
+        <MetricCard label="HEALTH SCORE" value={mission.health} unit="/100" detail="Calculated from current telemetry" tone={mission.health < 60 ? 'red' : mission.health <= 85 ? 'amber' : 'green'} />
+        <MetricCard label="REMAINING USEFUL LIFE" value={mission.rul.toFixed(1)} unit="hrs" detail="Health-derived estimate" tone={mission.health < 60 ? 'red' : ''} />
+        <MetricCard label="CURRENT FAULT" value={mission.fault} detail="Live telemetry classification" tone={mission.faultClassification === 'HEALTHY' ? 'green' : 'amber'} />
         <MetricCard label="MISSION STATUS" value={mission.mission} detail="Simulated mission state" />
-        <MetricCard label="RISK LEVEL" value={mission.risk} detail="Scenario risk category" tone={mission.risk === 'LOW' ? 'green' : 'red'} />
+        <MetricCard label="MISSION RECOMMENDATION" value={mission.recommendation} detail="Threshold-based action" tone={mission.health < 60 ? 'red' : mission.health <= 85 ? 'amber' : 'green'} />
       </div>
 
       <div className="overview-grid">
@@ -86,10 +97,53 @@ export default function Dashboard() {
           </div>
           <div className="readiness">
             <span>Data source <b>Local simulation</b></span>
-            <span>Data integrity <b>Not assessed</b></span>
+            <span>Data integrity <b>Synthetic stream</b></span>
           </div>
         </section>
       </div>
+      <section className="live-readouts" aria-labelledby="live-readouts-title">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">UAV-01 · 1 HZ SYNTHETIC STREAM</span>
+            <h2 id="live-readouts-title">Live telemetry</h2>
+          </div>
+          <div className="mission-state" role="status"><i /> REFRESHING EVERY 2 S</div>
+        </div>
+        <div className="live-readout-grid">
+          {readings.map(([label, field, unit, digits]) => (
+            <article className="live-readout" key={field}>
+              <span>{label}</span>
+              <strong>{Number(latest?.[field] ?? 0).toFixed(digits)}<small>{unit}</small></strong>
+              <small className="readout-status">CURRENT SAMPLE</small>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="dashboard-live-charts" aria-label="Live engine telemetry charts">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">ROLLING SENSOR HISTORY</span>
+            <h2>Live engine trends</h2>
+          </div>
+        </div>
+        <div className="dashboard-chart-grid">
+          {[
+            ['rpm', 'ENGINE RPM', '#35b9ff'],
+            ['egt', 'EXHAUST GAS TEMPERATURE', '#ff7b6b'],
+            ['cht', 'CYLINDER HEAD TEMPERATURE', '#ffb955'],
+            ['fuel_flow', 'FUEL FLOW', '#9b8cff'],
+            ['vibration', 'VIBRATION', '#45d7aa'],
+          ].map(([field, title, color]) => (
+            <TelemetryChart
+              key={field}
+              data={mission.telemetry.slice(-60)}
+              field={field}
+              title={title}
+              color={color}
+            />
+          ))}
+        </div>
+      </section>
       <Inject />
     </>
   )

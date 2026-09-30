@@ -87,6 +87,7 @@ export function MissionRecommendation({ recommendation, risk, fault }) {
         <span className="eyebrow">MISSION RECOMMENDATION · DEMONSTRATOR</span>
         <span className={`risk-chip ${String(risk).toLowerCase()}`}>RISK: {risk}</span>
       </div>
+      <span className={`recommendation-status ${details.className}`} role="status">{recommendation}</span>
       <div className="recommendation-content">
         <Icon size={22} aria-hidden="true" />
         <div>

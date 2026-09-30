@@ -59,7 +59,7 @@ export default function CommandLayout({ children }) {
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`} aria-label="Mission control navigation">
         <div className="brand">
           <Satellite aria-hidden="true" />
-          <div><b>DRDO · VAYU</b><small>ENGINE HEALTH COMMAND</small></div>
+          <div><b>SKYNEX</b><small>AEROSPACE ENGINE COMMAND</small></div>
           <button aria-label="Close navigation" onClick={closeNavigation}><X /></button>
         </div>
         <div className="system-tag"><i /> PROTOTYPE · SYNTHETIC DATA</div>
@@ -77,7 +77,7 @@ export default function CommandLayout({ children }) {
       <main>
         <header className="topbar">
           <button className="menu" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Menu /></button>
-          <div><span>DRDO / UAV OPERATIONS /</span><h1>{titles.get(pathname) || 'Mission Control'}</h1></div>
+          <div><span>SKYNEX / UAV OPERATIONS /</span><h1>{titles.get(pathname) || 'Mission Control'}</h1></div>
           <div className="live"><i /> SIMULATION + API <b>IST</b></div>
         </header>
         <div className="content">{children}</div>

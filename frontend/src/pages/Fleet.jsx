@@ -4,7 +4,7 @@ import { useFleet } from '../v2/useFleet'
 import '../v2/v2.css'
 
 export default function Fleet() {
-  const { fleet, error, retry } = useFleet()
+  const { fleet, error, retry, lastUpdated } = useFleet()
 
   return (
     <div className="v2 fleet-command-page">
@@ -22,7 +22,7 @@ export default function Fleet() {
           <button onClick={retry}><RefreshCw size={14} /> Retry</button>
         </div>
       )}
-      <FleetCommandCenter fleet={fleet} />
+      <FleetCommandCenter fleet={fleet} lastUpdated={lastUpdated} />
     </div>
   )
 }
