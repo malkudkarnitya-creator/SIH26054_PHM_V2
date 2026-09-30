@@ -66,7 +66,7 @@ export default function Dashboard() {
   ]
 
   return (
-    <>
+    <div className="dashboard-wrapper">
       <section
         style={{
           marginBottom: '25px',
@@ -283,6 +283,25 @@ export default function Dashboard() {
         </div>
       </section>
       <Inject />
-    </>
+      <svg
+        className="uav-watermark"
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M100 20L120 60H160L130 85L145 130L100 105L55 130L70 85L40 60H80L100 20Z"
+          fill="currentColor"
+          opacity="0.05"
+        />
+        <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="2" opacity="0.03" />
+        <path
+          d="M100 40L115 70H145L125 90L135 120L100 100L65 120L75 90L55 70H85L100 40Z"
+          fill="currentColor"
+          opacity="0.04"
+        />
+      </svg>
+    </div>
   )
 }
