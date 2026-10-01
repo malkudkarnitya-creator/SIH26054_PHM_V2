@@ -22,6 +22,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import MissionDecisionCard from '../components/MissionDecisionCard'
 
 const scenarios = [
   {
@@ -539,6 +540,20 @@ export default function JudgeDemo({ data, busy, onStart, onPause, onRestart }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 4.5 AUTONOMOUS MISSION DECISION ENGINE */}
+      <div className="judge-decision-section">
+        <div className="judge-section-bar">
+          <span className="judge-subheading">4.5 AUTONOMOUS MISSION DECISION ENGINE</span>
+          <span className="judge-subhint">Operational decision support for UAV mission commanders</span>
+        </div>
+        <MissionDecisionCard
+          health={data?.health_index || 100}
+          rul={data?.rul?.hours || 800}
+          fault={currentScenarioMeta.label}
+          faultClassification={finding?.failure_mode || 'HEALTHY'}
+        />
       </div>
 
       {/* 5. DEMONSTRATION NARRATIVE: Telemetry → Residuals → Diagnosis → Health → RUL → Recommendation */}

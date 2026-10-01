@@ -4,6 +4,7 @@ import { useMission } from '../hooks/useMission'
 import { HealthScore, MissionRecommendation, RemainingLife } from '../components/MissionMetrics'
 import { TelemetryChart } from '../components/Charts'
 import MissionEnvironment from '../components/MissionEnvironment'
+import MissionDecisionCard from '../components/MissionDecisionCard'
 
 function MetricCard({ label, value, unit, detail, tone = '' }) {
   return (
@@ -239,6 +240,15 @@ export default function Dashboard() {
             <span>Data integrity <b>Synthetic stream</b></span>
           </div>
         </section>
+      </div>
+
+      <div className="mission-decision-section">
+        <MissionDecisionCard
+          health={mission.health}
+          rul={mission.rul}
+          fault={mission.fault}
+          faultClassification={mission.faultClassification}
+        />
       </div>
       <section className="live-readouts" aria-labelledby="live-readouts-title">
         <div className="section-heading">
