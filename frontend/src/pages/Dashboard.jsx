@@ -88,7 +88,7 @@ export default function Dashboard() {
               margin: '0 0 8px 0',
             }}
           >
-            SKYNEX PHM
+            SKYNEX
           </h1>
           <p
             style={{
@@ -98,7 +98,7 @@ export default function Dashboard() {
               letterSpacing: '0.02em',
             }}
           >
-            AI-Powered Predictive Health Monitoring for UAV Fleets
+            AI-Powered Digital Twin for UAV Engine Health Monitoring
           </p>
         </div>
       </section>
@@ -112,7 +112,7 @@ export default function Dashboard() {
         <div className="mission-state" role="status"><i /> DEMO · {mission.mission}</div>
       </section>
 
-      {/* SIH26054 Evaluator Quick Access Strip */}
+      {/* Judge demo quick access */}
       <section
         style={{
           display: 'flex',
@@ -156,7 +156,7 @@ export default function Dashboard() {
                   borderRadius: '3px',
                 }}
               >
-                SIH26054 EVALUATION MODE
+                JUDGE DEMO MODE
               </span>
             </div>
             <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#f0f7f7', margin: '4px 0 2px' }}>

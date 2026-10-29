@@ -79,7 +79,7 @@ export default function JudgeDemoPage() {
           </div>
           <div>
             <b style={{ fontSize: '13px', color: '#eef7f6', display: 'block' }}>
-              SIH26054 Evaluator Cockpit
+              SKYNEX Evaluator Cockpit
             </b>
             <small style={{ fontSize: '10px', color: '#85a4ad' }}>
               Connected to VAYU-01 Propulsion Digital Twin Engine · {connection.toUpperCase()}

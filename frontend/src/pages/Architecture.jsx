@@ -80,10 +80,10 @@ export default function Architecture() {
 
   // Export all diagrams sequentially
   const handleExportAll = () => {
-    handleDownloadSvg(d1Ref, 'SKYNEX-System-Architecture-SIH26054')
-    setTimeout(() => handleDownloadSvg(d2Ref, 'SKYNEX-Digital-Twin-Workflow-SIH26054'), 350)
-    setTimeout(() => handleDownloadSvg(d3Ref, 'SKYNEX-PHM-Pipeline-SIH26054'), 700)
-    setTimeout(() => handleDownloadSvg(d4Ref, 'SKYNEX-Fleet-Architecture-SIH26054'), 1050)
+    handleDownloadSvg(d1Ref, 'SKYNEX-System-Architecture')
+    setTimeout(() => handleDownloadSvg(d2Ref, 'SKYNEX-Digital-Twin-Workflow'), 350)
+    setTimeout(() => handleDownloadSvg(d3Ref, 'SKYNEX-PHM-Pipeline'), 700)
+    setTimeout(() => handleDownloadSvg(d4Ref, 'SKYNEX-Fleet-Architecture'), 1050)
   }
 
   // 7-Stage Judge Mode Narrative
@@ -169,7 +169,7 @@ export default function Architecture() {
         <div className="arch-header-left">
           <div className="v-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#63ddbc' }}>
             <Sparkles size={13} />
-            <span>AEROSPACE SYSTEMS ENGINEERING · SIH26054 GRAND FINALE PRESENTATION ASSETS</span>
+            <span>SKYNEX · AEROSPACE SYSTEMS ENGINEERING</span>
           </div>
           <h1>System Architecture & Digital Twin Schematics</h1>
           <p>
@@ -323,7 +323,7 @@ export default function Architecture() {
                 </button>
                 <button
                   className="arch-card-btn"
-                  onClick={() => handleDownloadSvg(d1Ref, 'SKYNEX-System-Architecture-SIH26054')}
+                  onClick={() => handleDownloadSvg(d1Ref, 'SKYNEX-System-Architecture')}
                   title="Download standalone vector SVG"
                 >
                   <Download size={13} /> Download SVG
@@ -562,7 +562,7 @@ export default function Architecture() {
                 </button>
                 <button
                   className="arch-card-btn"
-                  onClick={() => handleDownloadSvg(d2Ref, 'SKYNEX-Digital-Twin-Workflow-SIH26054')}
+                  onClick={() => handleDownloadSvg(d2Ref, 'SKYNEX-Digital-Twin-Workflow')}
                   title="Download standalone vector SVG"
                 >
                   <Download size={13} /> Download SVG
@@ -787,7 +787,7 @@ export default function Architecture() {
                 </button>
                 <button
                   className="arch-card-btn"
-                  onClick={() => handleDownloadSvg(d3Ref, 'SKYNEX-PHM-Pipeline-SIH26054')}
+                  onClick={() => handleDownloadSvg(d3Ref, 'SKYNEX-PHM-Pipeline')}
                   title="Download standalone vector SVG"
                 >
                   <Download size={13} /> Download SVG
@@ -960,7 +960,7 @@ export default function Architecture() {
                 </button>
                 <button
                   className="arch-card-btn"
-                  onClick={() => handleDownloadSvg(d4Ref, 'SKYNEX-Fleet-Architecture-SIH26054')}
+                  onClick={() => handleDownloadSvg(d4Ref, 'SKYNEX-Fleet-Architecture')}
                   title="Download standalone vector SVG"
                 >
                   <Download size={13} /> Download SVG

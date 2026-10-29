@@ -238,7 +238,7 @@ export default function JudgeDemo({ data, busy, onStart, onPause, onRestart }) {
         <div>
           <div className="judge-demo-eyebrows">
             <span className="v-eyebrow">
-              <Sparkles size={12} className="v-sparkle-icon" /> AEROSPACE PHM EVALUATION SUITE · SIH26054
+              <Sparkles size={12} className="v-sparkle-icon" /> SKYNEX · AEROSPACE ENGINE INTELLIGENCE
             </span>
             <span className="judge-mode-tag">60-SECOND DETERMINISTIC WALKTHROUGH</span>
           </div>
